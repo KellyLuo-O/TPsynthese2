@@ -38,8 +38,6 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr,"getaddrinfo: %s\n", gai_strerror(sockfd));
 		exit(EXIT_FAILURE);
 	}
-
-	//display_addrinfo(result);
 	
 	/* getaddrinfo returns a list result of structure addrinfo
 	 * Try socket each address until successuful */
@@ -72,17 +70,17 @@ int main(int argc, char *argv[]) {
 	}
 		
 	// RRQ request for reading a file 
-	char rrq[12+strlen(file)];
+	char rrq[9+strlen(file)];
 
 	rrq[0] = 0x00; 
 	rrq[1] = 0x01;	
 	strcpy(&rrq[2], file);
 	rrq[2+strlen(file)] = 0x00;
-	strcpy(&rrq[3+strlen(file)], "netascii");
-	rrq[11+strlen(file)] = 0x00;
+	strcpy(&rrq[3+strlen(file)], "octet");
+	rrq[8+strlen(file)] = 0x00;
 	
 	// send rrq request 
-	if (sendto(sockfd, &rrq, 12+strlen(file), 0, rp->ai_addr, rp->ai_addrlen) != 12+strlen(file))
+	if (sendto(sockfd, &rrq, 9+strlen(file), 0, rp->ai_addr, rp->ai_addrlen) != 9+strlen(file))
 	{
 		perror("error in writing request");
 		exit(EXIT_FAILURE);
