@@ -65,5 +65,15 @@ int main(int argc, char *argv[]) {
     char *file = argv[3];
     
     int sockfd = socketConnect(host, port);
+    
+    // RRQ request for reading a file 
+	char rrq[12+strlen(file)];
+
+	rrq[0] = 0x00; 
+	rrq[1] = 0x01;	
+	strcpy(&rrq[2], file);
+	rrq[2+strlen(file)] = 0x00;
+	strcpy(&rrq[3+strlen(file)], "netascii");
+	rrq[11+strlen(file)] = 0x00;
 
 }
