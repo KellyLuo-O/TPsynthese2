@@ -81,11 +81,12 @@ int main(int argc, char *argv[]) {
 	}
 
 	char fileData[sb.st_size];
+	printf("ici dfile zize n : %ld\n", sb.st_size);
 	// read file 
 	if (read(filefd, &fileData, sb.st_size) == -1)
 	{
 		perror("error in reading file");
-		//exit(EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 	
 	// -------------------- WRQ request for reading a file 
@@ -97,11 +98,11 @@ int main(int argc, char *argv[]) {
 	wrq[2+strlen(file)] = 0x00;
 	strcpy(&wrq[3+strlen(file)], "octet");
 	wrq[8+strlen(file)] = 0x00;
-	
 
+	// -------------------- send wrq request 
 	while(1)
 	{
-		// send wrq request 
+		
 		if (sendto(sockfd, &wrq, 9+strlen(file), 0, rp->ai_addr, rp->ai_addrlen) != 9+strlen(file))
 		{
 			perror("error in sending request");
@@ -118,37 +119,47 @@ int main(int argc, char *argv[]) {
 		if(receivedACK[0] == 0x00 && receivedACK[1] == 0x04 &&			//received ack first two bytes = 0x0004
 			receivedACK[2] == 0x00 && receivedACK[3] == 0x00)			//received ack last two bytes = block number
 			break;
-		
 	}	
-	
-	
 
-	// parse data 
-	char parsedData[4+strlen(fileData[])];
-	parsedData[0] = 0x00; parsedData[1] = 0x03; // Opcode = 0x0003
-	parsedData[2] = 0x00; parsedData[3] = 0x01; // Block number = 0x0001
-	strcpy(&parsedData[4], fileData);
 	
-	
-	while(1)
+	for( int dataIndex = 0; dataIndex < strlen(fileData); dataIndex += 512 )
 	{
-		// send file
-		if (sendto(sockfd, parsedData, strlen(fileData)+3, 0, rp->ai_addr, rp->ai_addrlen) != strlen(fileData)+3)
+		// ---------------- parse data 
+		int blockNumber = (dataIndex/512) + 1;
+		//int dataLen = strlen(fileData) - dataIndex < 512 ? strlen(fileData) - dataIndex : 512;
+		char dataFrame[512];
+		memcpy(dataFrame, &fileData[dataIndex], 512);
+		
+		
+		
+		int blockLen = strlen(dataFrame)+4-1;
+		char parsedData[blockLen];
+		
+		parsedData[0] = 0x00; parsedData[1] = 0x03; 					// Opcode = 0x0003
+		parsedData[2] = blockNumber>>8; parsedData[3] = blockNumber; 	// Block number
+		strcpy(&parsedData[4], dataFrame);
+		
+		// ----------------- send data block
+		while(1)
 		{
-			perror("error in sending file data");
-			exit(EXIT_FAILURE);
-		}
-		
-		int receivedBytes = recvfrom(sockfd, receivedACK, 4, 0, rp->ai_addr, &rp->ai_addrlen);
-		if (receivedBytes == -1)
-		{ 
-			perror("error in reading");
-			exit(EXIT_FAILURE);
-		}
-		
-		if(receivedACK[0] == 0x00 && receivedACK[1] == 0x04 &&		//received ack first two bytes = 0x0004
-			receivedACK[2] == 0x00 && receivedACK[3] == 0x01)		//received ack last two bytes = block number
-			break;	
-	}   
+			if (sendto(sockfd, parsedData, blockLen, 0, rp->ai_addr, rp->ai_addrlen) != blockLen)
+			{
+				perror("error in sending file data");
+				exit(EXIT_FAILURE);
+			}
+			
+			int receivedBytes = recvfrom(sockfd, receivedACK, 4, 0, rp->ai_addr, &rp->ai_addrlen);
+			if (receivedBytes == -1)
+			{ 
+				perror("error in reading");
+				exit(EXIT_FAILURE);
+			}
+			
+			if(receivedACK[0] == 0x00 && receivedACK[1] == 0x04 &&						//received ack first two bytes = 0x0004
+			   receivedACK[2] == blockNumber>>8 && receivedACK[3] == blockNumber)		//received ack last two bytes = block number
+				break;	
+		}   
+	}
+
 }
 
