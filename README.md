@@ -3,11 +3,11 @@
 tftp client 
 
 - to get a file from the server 
-	./gettftp host port file
+	- ./gettftp host port file
 	- the file is downloaded in the folder where this code is 
 	
 - to send a file in the server 
-	./puttftp host port file 
+	- ./puttftp host port file 
 	- the file is downloaded in the server 
 	- it kinda works with multiple packet file (file over 512 bytes)
 	- it adds some caracteres at the end of the file for some reason 
