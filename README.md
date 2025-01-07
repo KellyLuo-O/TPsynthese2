@@ -4,7 +4,7 @@ tftp client
 
 - to get a file from the server 
 	./gettftp host port file
-	the file is downloaded in the folder where this code is 
+	- the file is downloaded in the folder where this code is 
 	
 - to send a file in the server 
 	./puttftp host port file 
