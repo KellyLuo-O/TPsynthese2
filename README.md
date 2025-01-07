@@ -8,10 +8,10 @@ tftp client
 	
 - to send a file in the server 
 	./puttftp <host> <port> <file> 
-	the file is downloaded in the server 
-	it kinda works with multiple packet file (file over than 512 bytes)
-		-> it adds some caractere at the end of the file for some reason 
-	but strangely it doesn't work with the image file 
+	- the file is downloaded in the server 
+	- it kinda works with multiple packet file (file over 512 bytes)
+	- it adds some caracteres at the end of the file for some reason 
+	- strangely it doesn't work with the image file 
 	
 	
 
